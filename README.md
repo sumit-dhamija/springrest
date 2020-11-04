@@ -207,5 +207,254 @@ if it is based based ==> it starts web server and deploys the application on tha
 	@Configuration
 	@PropertyPlaceholder("value.properties")
 
+===========================================================
 
+@Component, @Repository, @Service, @Bean, @SpringApplicationContext
+
+@Autowired
+
+public class SomeClass {
+	@Autowired
+	private OtherClass clazz;
+
+	@Autowired
+	public SomeClass(AClass ac){
+
+	}	
+
+
+	public void setdata(@Autowired DBUtil util) {
+
+	}
+}
+\==================================================================\
+
+	Spring Data JPA
+	---------------
+
+	Spring boot configures out of the box 
+		1) Hibernate as ORM framework
+		2) Hikari dataSource for database connection pooling
+		3) Query methods support
+
+	Hibernat as ORM framework
+	Object Relational Mapping
+
+	em.save(p); // insert into ...
+
+	em.find(Product.class, 25); // select .... where id = 25
+
+
+	em.merge(p); // update
+
+	em.delete(p); // delete
+
+
+	JPA ==> Specification for ORM frameworks
+
+	ORM: Hibernate, Toplink, Kodo, OpenJPA, ...
+
+	Oracle ==> JPA [ rules for ORM]
+
+
+	=================
+
+	1) EntityManager is a wrapper for database connection
+		==> CRUD operations on tables [ product, custoemr., order ]of database
+
+	2) ORM provider ==> Hibernate, TopLink,
+
+	3) EntityManagerFactory
+		==> factory class to crete EntityManager
+		==> makes use of avaialble ORM provider + DB conection pool
+		==> PersistenceContext
+				==> env to manage entities ==> sync with database
+
+	=========
 	
+	Without Spring Boot
+
+	@Configuration		
+	public class DbConfig {
+
+		@Bean
+		public HikariDataSource dataSource() {
+			HikariDataSource ds = new HikariDataSource();
+			ds.setUrl(...);
+			ds.setUser(,,);
+			ds.setPassword(..);
+			ds.setPoolSize(..);
+			...
+		}
+
+		@Bean
+		public LocalContainerEntityManagerFactoyBean emf(DataSource ds) {
+			LocalContainerEntityManagerFactoyBean emf = new LocalContainerEntityManagerFactoyBean();
+			emf.setProvider(new HibernateVendor());
+			emf.setDataSource(ds);
+			...
+		}
+	}
+ 
+	@Repository
+	public class MyRepo {
+
+		@PersistenceContext
+		EntityManager em;
+
+		public void addProduct(Product p) {
+			em.save(p);
+		}
+
+	}
+
+	=========================
+
+	Spring Boot Data JPA
+		==> HikariDataSource and Hibernate is configured
+		==> application.properites ==> url, user, pwd, ...
+
+
+		1) spring.jpa.hibernate.ddl-auto=create
+		drop existing tables and re-create the tables
+		use this for testing
+
+		2) spring.jpa.hibernate.ddl-auto=update
+			use tables if exists else create table [orm]
+
+		3) spring.jpa.hibernate.ddl-auto=validate
+			don't create tables use existing table
+
+
+	==========
+
+	Without Spring boot Data JPA
+
+	public interface ProductDao {
+		void addProduct(Product p);
+	}
+
+	@Repository
+	public class ProductDaoJpaImpl implements PrpductDao {
+		@PersistenceContext
+		EnityManager em;
+
+		public void addProduct(Product p){
+			em.persist(p);
+		}	
+	}
+
+	======
+
+	With Spring DATA JPA
+
+	public interface ProductDao extends JPARepository<Product, Integer> {
+
+	}
+
+	generates on the fly implmentation classes and manged by container
+
+	this gives basic operations for CRUD [ methods]
+
+
+	Product p = productDao.getOne(id); // lazy loading
+
+	p will be proxy object
+
+	p.getName(); // at his point actual product object is created
+
+	p will be proxy not actual
+
+
+	==========
+
+	JPQL ==> Java Persistence Query language
+	use class and fields for query and not SQL
+
+
+	public interface ProductDao extends JpaRepository<Product, Integer> {
+
+	List<Product> findByDiscontinued(int avail); // select * from products where category = ?
+	
+	// List<Product> findByCategoryAndDiscontinued(String category, int avail); 
+	// select * from products where category = ? and discontinued = ?
+	
+	@Query("SELECT p FROM Product p where p.listPrice >= :lr and p.listPrice <= :up")
+	List<Product> getProductsByRange(@Param("lr") double lower, @Param("up") double upper);
+	
+}
+
+
+package com.example.demo.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.dao.ProductDao;
+import com.example.demo.entity.Product;
+
+@Service
+public class OrderService {
+	@Autowired
+	private ProductDao productDao;
+
+	public List<Product> getProducts() {
+		return productDao.findAll();
+	}
+
+	public Product addProduct(Product p) {
+		return productDao.save(p);
+	}
+
+	public Product getProductById(int id) {
+		return productDao.findById(id).get();
+	}
+
+	public List<Product> getProductsByDiscontinued(int avail) {
+		return productDao.findByDiscontinued(avail);
+	}
+
+	public List<Product>  getProductsByRange(double lower, double upper) {
+		return productDao.getProductsByRange( lower,  upper);
+	}
+}
+
+
+package com.example.demo;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.example.demo.entity.Product;
+import com.example.demo.service.OrderService;
+
+@SpringBootApplication
+public class SpringdataBaseApplication implements CommandLineRunner {
+
+	@Autowired
+	private OrderService service;
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringdataBaseApplication.class, args);
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+		// code executes after Spring container [ Applicationcontext is created ]
+//		List<Product> products = service.getProducts();
+//		List<Product> products = service.getProductsByDiscontinued(1);
+		List<Product> products = service.getProductsByRange(10.0, 20.0);
+		for (Product p : products) {
+			System.out.println(p.getProductName() + ", " + p.getListPrice() + "," + p.getDiscontinued());
+		}
+	}
+
+}
+
+
