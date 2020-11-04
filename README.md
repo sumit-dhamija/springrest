@@ -457,4 +457,156 @@ public class SpringdataBaseApplication implements CommandLineRunner {
 
 }
 
+========================================================================================
+
+	
+@Entity
+@Table(name = "products")
+public class Product {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
+	private String productCode;
+	private String productName;
+	private String description;
+	private double standardCost;
+	private double listPrice;
+	private int targetLevel;
+	private int reorderLevel;
+	private int minimumReorderQuantity;
+	private String quantityPerUnit;
+	private int discontinued;
+
+}
+
+// return type is an entity
+public interface ProductDao extends JpaRepository<Product, Integer> {
+	List<Product> findByDiscontinued(int avail);
+}
+
+// scalar values
+public interface ProductDao extends JpaRepository<Product, Integer> {
+	@Query("SELECT p.productName, p.listPrice from Product p")
+	List<Object[]> getNameAndPrice();
+}
+
+
+@Entity
+@Table(name="customers")
+public class Customer {
+		@Id email; firstName; lastName;
+}
+
+@Entity
+@Table(name="orders")
+public Order {
+	id; orderDate; total; 
+
+	@ManyToOne()
+	@JoinColumn("customer_fk")
+	Customer customer;
+}
+
+customers
+email 				|   first_name 		| last_name
+a@adobe.com 			Askok 				Kumar
+
+orders
+id |order_date | total | customer_fk
+12  04-11-2020  	545  a@adobe.com
+
+74 02-10-2020   74545  a@adobe.com
+
+class ReportDTO {
+	email;
+	order_date
+	total
+}
+
+
+
+public OrderDao extends JPARepository<Order, Integer> {
+ @Query("select c.email, o.orderDate, o.total from Order o inner join o.customer c")
+  List<Object[]> getReport();
+}
+
+
+public OrderDao extends JPARepository<Order, Integer> {
+ @Query("select new com.example.demo.ReportDTO(c.email, o.orderDate, o.total) from Order o inner join o.customer c")
+  List<ReportDTO> getReport();
+}
+
+=======================================================================
+
+public interface ProductDao extends JpaRepository<Product, Integer> {
+	
+	@Query("update Product product set product.listPrice = :p.listPrice where product.id = :p.id")
+	@Modifying
+	void updateProduct(@Param("p") Product p);
+}
+
+==========================================================
+
+
+@Autowired
+	private ProductDao productDao;
+	
+	@Override
+	public void run(String... args) throws Exception {
+		
+		Pageable pageable = PageRequest.of(0, 3);
+		
+		Page<Product> page = productDao.findAll(pageable);
+		
+		System.out.println("Page :" + page.getNumber());
+		System.out.println("# Pages :" + page.getTotalPages());
+		
+		List<Product> products = page.getContent();
+		for(Product p : products) {
+			System.out.println(p.getProductName() + ", " + p.getListPrice());
+		}
+	}
+
+===============================
+
+Pageable pageable = PageRequest.of(0, 3, Sort.by("listPrice").ascending());
+		
+		Page<Product> page = productDao.findAll(pageable);
+		
+		System.out.println("Page :" + page.getNumber());
+		System.out.println("# Pages :" + page.getTotalPages());
+		
+		List<Product> products = page.getContent();
+		for(Product p : products) {
+			System.out.println(p.getProductName() + ", " + p.getListPrice());
+		}
+
+===================
+
+
+Docker Desktop
+docker pull redis
+ 
+## step2 - Running the container
+docker run -d -p 6379:6379 --name my-redis redis
+
+
+UI with NodeJS for Redis:
+$ npm install -g redis-commander
+$ redis-commander
+======================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
