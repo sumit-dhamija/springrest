@@ -12,9 +12,9 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+//import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -28,9 +28,6 @@ import com.adobe.prj.service.OrderService;
 public class OrderappApplication implements CommandLineRunner {
 	@Autowired
 	private OrderService service;
-
-	@Autowired
-	private RestTemplate template;
 	
 	public static void main(String[] args) {
 		SpringApplication.run(OrderappApplication.class, args);
@@ -51,10 +48,12 @@ public class OrderappApplication implements CommandLineRunner {
 		return bean;
 	}
 	
-	@Bean
-	public RestTemplate restTemplate(RestTemplateBuilder builder) {
-		return builder.build();
-	}
+	/*
+	 * @Autowired private RestTemplate template;
+	 * 
+	 * @Bean public RestTemplate restTemplate(RestTemplateBuilder builder) { return
+	 * builder.build(); }
+	 */
 
 	@Override
 	public void run(String... args) throws Exception {
@@ -73,50 +72,41 @@ public class OrderappApplication implements CommandLineRunner {
 		}
 		
 //		getProduct();
-		getAllProducts();
+//		getAllProducts();
 //		addProduct();
 	}
 	
-	private void getAllProducts() {
-		String result = template.getForObject("http://localhost:8080/api/products", String.class);
-		
-		System.out.println("**********");
-		System.out.println(result);
-		
-		System.out.println("********");
-		
-		
-		ResponseEntity<List<Product>> productsResponse = template.exchange(
-				"http://localhost:8080/api/products", 
-				HttpMethod.GET,
-				null,
-				new ParameterizedTypeReference<List<Product>>() {});
-		
-		List<Product> products = productsResponse.getBody();
-		for(Product p : products) {
-			System.out.println(p.getName());
-		}
-	}
-
-	public void addProduct() {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		
-		Product p = new Product();
-		p.setName("Dummy");
-		p.setPrice(1000);
-		p.setQuantity(100);
-		
-		HttpEntity<Product> requestEntity = new HttpEntity<>(p, headers);
-		ResponseEntity<Product> productResponse = template.postForEntity("http://localhost:8080/api/products", p, Product.class);
-		System.out.println(productResponse.getStatusCodeValue());
-		System.out.println(productResponse.getBody().getId());
-		
-	}
-	public  void getProduct() {
-		ResponseEntity<Product> productResponse = template.getForEntity("http://localhost:8080/api/products/1", Product.class);
-		System.out.println(productResponse.getStatusCodeValue());
-		System.out.println(productResponse.getBody().getName());
-	}
-
+	/*
+	 * private void getAllProducts() { String result =
+	 * template.getForObject("http://localhost:8080/api/products", String.class);
+	 * 
+	 * System.out.println("**********"); System.out.println(result);
+	 * 
+	 * System.out.println("********");
+	 * 
+	 * 
+	 * ResponseEntity<List<Product>> productsResponse = template.exchange(
+	 * "http://localhost:8080/api/products", HttpMethod.GET, null, new
+	 * ParameterizedTypeReference<List<Product>>() {});
+	 * 
+	 * List<Product> products = productsResponse.getBody(); for(Product p :
+	 * products) { System.out.println(p.getName()); } }
+	 * 
+	 * public void addProduct() { HttpHeaders headers = new HttpHeaders();
+	 * headers.setContentType(MediaType.APPLICATION_JSON);
+	 * 
+	 * Product p = new Product(); p.setName("Dummy"); p.setPrice(1000);
+	 * p.setQuantity(100);
+	 * 
+	 * // HttpEntity<Product> requestEntity = new HttpEntity<>(p, headers);
+	 * ResponseEntity<Product> productResponse =
+	 * template.postForEntity("http://localhost:8080/api/products", p,
+	 * Product.class); System.out.println(productResponse.getStatusCodeValue());
+	 * System.out.println(productResponse.getBody().getId());
+	 * 
+	 * } public void getProduct() { ResponseEntity<Product> productResponse =
+	 * template.getForEntity("http://localhost:8080/api/products/1", Product.class);
+	 * System.out.println(productResponse.getStatusCodeValue());
+	 * System.out.println(productResponse.getBody().getName()); }
+	 */
 }

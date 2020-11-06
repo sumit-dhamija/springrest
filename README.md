@@ -1138,8 +1138,307 @@ docker run -d --name=prometheus -p 9090:9090 -v C:\prometheus\prometheus.yml:/et
 		<!-- Swagger end -->
 			
 
+============================================
+
+Day 3
+-----
+	http://localhost:8080/api/v1/products
+	http://localhost:8080/api/v2/products
+
+	Documentation of APIs ==> Swagger
+
+	<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>2.7.0</version>
+	</dependency>
+
+	JSON documentation which we can consume and build UI
+		api/v2/docs ==> JSON
+
+	<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>2.7.0</version>
+	</dependency>
+		includes bootstrap for CSS3 and jQuery
 
 
+RequestHandlerSelectors.basePackage("com.adobe.prj.api.v1");
+PathSelectors.regex("/api/*");
+
+
+=============
+
+actuator and prometheus
+
+docker run -d --name=prometheus -p 9090:9090 -v C:\prometheus\prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus --config.file=/etc/prometheus/prometheus.yml
+
+> docker start prometheus
+
+==================================
+
+Consuming RESTful data in Java Application:
+
+RestTemplate
+RestAssured or WebClient [ more suitable for testing]
+
+========
+@Autowired
+	private RestTemplate template;
+	
+	@Bean
+	public RestTemplate restTemplate(RestTemplateBuilder builder) {
+		return builder.build();
+	}
+
+	 
+	
+	private void getAllProducts() {
+		String result = template.getForObject("http://localhost:8080/api/products", String.class);
+		
+		System.out.println("**********");
+		System.out.println(result);
+		
+		System.out.println("********");
+		
+		
+		ResponseEntity<List<Product>> productsResponse = template.exchange(
+				"http://localhost:8080/api/products", 
+				HttpMethod.GET,
+				null,
+				new ParameterizedTypeReference<List<Product>>() {});
+		
+		List<Product> products = productsResponse.getBody();
+		for(Product p : products) {
+			System.out.println(p.getName());
+		}
+	}
+
+	public void addProduct() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		
+		Product p = new Product();
+		p.setName("Dummy");
+		p.setPrice(1000);
+		p.setQuantity(100);
+		
+		HttpEntity<Product> requestEntity = new HttpEntity<>(p, headers);
+		ResponseEntity<Product> productResponse = template.postForEntity("http://localhost:8080/api/products", p, Product.class);
+		System.out.println(productResponse.getStatusCodeValue());
+		System.out.println(productResponse.getBody().getId());
+		
+	}
+	public  void getProduct() {
+		ResponseEntity<Product> productResponse = template.getForEntity("http://localhost:8080/api/products/1", Product.class);
+		System.out.println(productResponse.getStatusCodeValue());
+		System.out.println(productResponse.getBody().getName());
+	}
+==================================
+Integration Testing ==> RestTemplate; RestAssured; WebClient [ HttpClient==>Apache.HttpClient]
+
+Unit Testing Rest Controllers
+---------------------------
+	Testing Controllers in isolation
+	we need to mock Service
+	mocking APIs ==> EasyMock; jMock; Mockito [spring adds this by default]
+------------------------
+
+Comment out All RestTemplate stuff in OrderApplication main...
+
+ProductControllerTest ==> Run As JUnit
+==========================================================
+
+HATEOAS ==> Hypermedia as the extension of Application State Level 3 of RESTful Web services
+
+LEVEL 2 ==> JSON ==> only state
+
+----------
+
+Use case:
+	get all products Amazon
+
+		links: 	"cart" : http://server:port/api/products/25/addtoCart [Button on screen ; <a href=..]
+				"details": http://server:port/api/products/25/details
+
+	http://localhost:8080/department
+		Depeartment
+			http://localhost:8080/department/1/employees
+			http://localhost:8080/department/2/employees
+			http://localhost:8080/department/3/employees
+
+Spring Data REST:
+
+Dependecies:
+<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-rest</artifactId>
+		</dependency>
+
+		Similar to Swagger but to test hyperlinks created
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-rest-hal-explorer</artifactId>
+		</dependency>
+
+===============================================================
+
+Download Account-serviceProtoBuf.zip
+Download Customer-serviceProtoBuf.zip
+
+=====================================================================
+
+Service-one can make calls to  Service-two ==> RestTemplate
+
+FeignClient: Declarative REST Client: Feign
+spring-cloud ==> Netflix API
+
+Client Side Load Balancer: Ribbon
+	account-service ==> can run on differnet IP address
+
+	Custom-service:
+	ribbon will have all the ip address of account-service
+============================
+
+Eureka ==> Service Registry
+Customer-Service @EnableAutoDiscoverable
+
+Zuul ==> API gateway
+==============================================
+
+Protocol Buffer : protobuf ==> gRPC
+
+brew install 
+
+==============
+
+Account-service:
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.8.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.protobuf-java-format</groupId>
+			<artifactId>protobuf-java-format</artifactId>
+			<version>1.4</version>
+		</dependency>
+
+		server.port=2222
+		spring.application.name=account-service
+
+		Account ==> protobuf ==> can't pass this to Spring Data JPA
+
+
+		@Entity
+		@Table(name="accounts")
+		public class Account {
+				@Id
+					....
+		}
+=================================================
+
+2:20 Post Lunch 
+
+Customer Protobuf consuming Account Protobuf
+
+Security
+
+====================================
+	
+	localhost:3333/customers/1
+
+	gets the customer info from Customer Service Repo
+
+	Using AccountClient ==> feign client makes a call to another microservice
+	then fetched data is added to customer and returned back
+
+
+@Component
+@FeignClient(value = "account-service")
+public interface AccountClient {
+
+    @RequestMapping(method = RequestMethod.GET, value = "/accounts/customer/{customerId}")
+    Accounts getAccounts(@PathVariable("customerId") Integer customerId);
+}
+
+======================================================================================
+
+Spring Security
+---------------
+
+	Servlet API:
+		Servlets ==> request response based on URI
+		Spring Framework provides DispatcherServlet as FrontController [*]
+		URI ==> HandlerMapping [ provided by Spring]
+		HandlerMapping ===> Classes marked with @Controller or @RestController and invokes the apprioriate method
+
+	ContextLoaderListener
+	Life cycle methods: as soon as code is deployed on server this class is invoked
+
+	class SpringInitializer implements ServletContextLoaderListener {
+			contextInitialized() { ...}
+			contextDestryoed() { ...}
+	}
+
+	Filter: are for interceptor pattern
+
+	class SecurityFilter implements Filter {
+		doFilter(ServletRequest req, ServletResponse res) {
+				// chain to the next request
+				// or send to login page
+		}
+	}
+
+	class ProfileFilter implements Filter {
+		doFilter(ServletRequest req, ServletResponse res) {
+				record start time
+				// chain to the next request
+				record end time
+		}
+	}
+	============
+
+	
+
+	Spring security Support:
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		including the above dependecies adds security to application
+
+		==> included bootstrap for CSS
+		==> login and logout screen
+		==> creting a user "user" with generated password ad926946-a7cd-4893-abdf-9b6c99b8d8f9
+
+		spring.security.user.name=banu
+	spring.security.user.password=secret
+jwt.zip
+jdbcauth.zip
+	==> URI /admin /user /..
+	antMatchers()
+
+methodauth.zip
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+
+eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiYW51IiwiZXhwIjoxNjA0Njk4MzI0LCJpYXQiOjE2MDQ2NjIzMjR9.RNeQyHjuD6UGr7wVglneRv-SZviln08dqHxTUFa7heM
+
+==================================================
 
 
 
