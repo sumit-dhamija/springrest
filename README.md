@@ -1080,7 +1080,63 @@ Spring has support for Aspect Oriented Programming [AOP]
 	JoinPoint: a place where ascpect is weaved
 		==> Method or Exception
 	Advice: Before, After, Around, Throws
-	
+=========================
+
+public RestTemplate restTemplate;
+     
+    @Before
+    public void setUp() 
+    {
+        restTemplate = new RestTemplate(getClientHttpRequestFactory());
+    }
+     
+    private HttpComponentsClientHttpRequestFactory getClientHttpRequestFactory() 
+    {
+        HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                          = new HttpComponentsClientHttpRequestFactory();
+         
+        clientHttpRequestFactory.setHttpClient(httpClient());
+              
+        return clientHttpRequestFactory;
+    }
+     
+    private HttpClient httpClient() 
+    {
+        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+ 
+        credentialsProvider.setCredentials(AuthScope.ANY, 
+                        new UsernamePasswordCredentials("admin", "password"));
+ 
+        HttpClient client = HttpClientBuilder
+                                .create()
+                                .setDefaultCredentialsProvider(credentialsProvider)
+                                .build();
+        return client;
+    }
+=========================
+
+docker run -d --name=prometheus -p 9090:9090 -v C:\prometheus\prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus --config.file=/etc/prometheus/prometheus.yml
+
+@Bean
+    @ConditionalOnMissingBean(HttpTraceRepository.class)
+    public InMemoryHttpTraceRepository traceRepository() {
+        return new InMemoryHttpTraceRepository();
+    }
+
+<!-- Swagger -->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>2.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>2.7.0</version>
+		</dependency>
+
+		<!-- Swagger end -->
+			
 
 
 

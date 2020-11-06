@@ -33,12 +33,7 @@ public class ProductController {
 	@GetMapping()
 	public @ResponseBody List<Product> 
 		getProducts(@RequestParam(name = "price", defaultValue = "0.0") double price) {
-		if(price == 0.0) {
 		return service.getAllProducts();
-		} else {
-			// get products by price
-			return service.getAllProducts();
-		}
 	}
 	
 	// http://localhost:8080/api/products/3
