@@ -1,4 +1,4 @@
-package com.adobe;
+package com.adobe.prj;
 
 
 import java.util.Collections;
