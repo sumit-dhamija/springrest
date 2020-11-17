@@ -7,7 +7,6 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,16 +19,21 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.adobe.prj.entity.Product;
-import com.adobe.prj.service.OrderService;import net.bytebuddy.asm.MemberAttributeExtension;
+import com.adobe.prj.service.OrderService;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 @RestController
 @RequestMapping("api/products")
+@Api(value = "Product API controller", produces = "application/json", consumes = "application/json")
 public class ProductController {
 	@Autowired
 	private OrderService service;
 	
 	// http://localhost:8080/api/products
 	// http://localhost:8080/api/products?price=100
+	@ApiOperation(value = "get all products")
 	@GetMapping()
 	public @ResponseBody List<Product> 
 		getProducts(@RequestParam(name = "price", defaultValue = "0.0") double price) {
